@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 
 interface ShareButtonProps {
   shareUrl: string
-  onShare: () => void
+  onShare: () => Promise<string>
 }
 
 export function ShareButton({ shareUrl, onShare }: ShareButtonProps) {
@@ -14,13 +14,22 @@ export function ShareButton({ shareUrl, onShare }: ShareButtonProps) {
 
   const handleClick = async () => {
     try {
-      await onShare()
-      await navigator.clipboard.writeText(shareUrl)
+      console.log('Share button clicked')
+      const url = await onShare()
+      console.log('Got share URL:', url)
+      
+      if (!url) {
+        throw new Error('No share URL generated')
+      }
+
+      await navigator.clipboard.writeText(url)
+      console.log('Copied to clipboard:', url)
+      
       setCopied(true)
       toast.success('Share link copied to clipboard')
       setTimeout(() => setCopied(false), 2000)
     } catch (error) {
-      console.error('Error copying to clipboard:', error)
+      console.error('Error in share button:', error)
       toast.error('Failed to copy share link')
     }
   }

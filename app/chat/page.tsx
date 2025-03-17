@@ -25,12 +25,19 @@ export default function ChatPage() {
   }, [user, loading, router])
 
   const handleShare = async () => {
-    if (!currentChatId) return
+    if (!currentChatId) {
+      console.error('No current chat selected')
+      return ''
+    }
     try {
+      console.log('Generating share URL for chat:', currentChatId)
       const url = await shareChat(currentChatId)
+      console.log('Generated share URL:', url)
       setShareUrl(url)
+      return url
     } catch (error) {
       console.error('Error generating share URL:', error)
+      throw error
     }
   }
 

@@ -223,34 +223,43 @@ export const useStore = create<ChatState>()((set, get) => {
     },
 
     shareChat: async (chatId: string) => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      try {
+        console.log('Starting share process for chat:', chatId)
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not authenticated')
 
-      const { data: chat, error } = await supabase
-        .from('chats')
-        .select('*')
-        .eq('id', chatId)
-        .single()
+        const { data: chat, error } = await supabase
+          .from('chats')
+          .select('*')
+          .eq('id', chatId)
+          .single()
 
-      if (error) throw error
-      if (!chat) throw new Error('Chat not found')
+        if (error) throw error
+        if (!chat) throw new Error('Chat not found')
 
-      // Generate a unique share ID if it doesn't exist
-      const shareId = chat.share_id || crypto.randomUUID()
+        // Generate a unique share ID if it doesn't exist
+        const shareId = chat.share_id || crypto.randomUUID()
+        console.log('Generated share ID:', shareId)
 
-      // Update the chat with the share ID and set it as shared
-      const { error: updateError } = await supabase
-        .from('chats')
-        .update({ 
-          share_id: shareId,
-          is_shared: true 
-        })
-        .eq('id', chatId)
+        // Update the chat with the share ID and set it as shared
+        const { error: updateError } = await supabase
+          .from('chats')
+          .update({ 
+            share_id: shareId,
+            is_shared: true 
+          })
+          .eq('id', chatId)
 
-      if (updateError) throw updateError
+        if (updateError) throw updateError
 
-      // Return the full share URL
-      return `${window.location.origin}/shared/${shareId}`
+        // Return the full share URL
+        const shareUrl = `${window.location.origin}/shared/${shareId}`
+        console.log('Generated share URL:', shareUrl)
+        return shareUrl
+      } catch (error) {
+        console.error('Error in shareChat:', error)
+        throw error
+      }
     },
 
     unshareChat: async (chatId: string) => {
