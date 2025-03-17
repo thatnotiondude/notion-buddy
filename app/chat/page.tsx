@@ -24,21 +24,15 @@ export default function ChatPage() {
     }
   }, [user, loading, router])
 
-  useEffect(() => {
-    const generateShareUrl = async () => {
-      if (currentChatId) {
-        try {
-          const url = await shareChat(currentChatId)
-          setShareUrl(url)
-        } catch (error) {
-          console.error('Error generating share URL:', error)
-        }
-      } else {
-        setShareUrl(null)
-      }
+  const handleShare = async () => {
+    if (!currentChatId) return
+    try {
+      const url = await shareChat(currentChatId)
+      setShareUrl(url)
+    } catch (error) {
+      console.error('Error generating share URL:', error)
     }
-    generateShareUrl()
-  }, [currentChatId, shareChat])
+  }
 
   const currentChat = chats.find(chat => chat.id === currentChatId)
 
@@ -67,7 +61,12 @@ export default function ChatPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          {currentChat && shareUrl && <ShareButton shareUrl={shareUrl} />}
+          {currentChat && (
+            <ShareButton 
+              shareUrl={shareUrl || ''} 
+              onShare={handleShare}
+            />
+          )}
           <ThemeToggle />
         </div>
       </header>

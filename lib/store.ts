@@ -223,27 +223,34 @@ export const useStore = create<ChatState>()((set, get) => {
     },
 
     shareChat: async (chatId: string) => {
-      try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        if (userError) throw userError
-        if (!user) throw new Error('No authenticated user')
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
 
-        const { data: chat, error: updateError } = await supabase
-          .from('chats')
-          .update({ is_shared: true })
-          .eq('id', chatId)
-          .select()
-          .single()
+      const { data: chat, error } = await supabase
+        .from('chats')
+        .select('*')
+        .eq('id', chatId)
+        .single()
 
-        if (updateError) throw updateError
-        if (!chat) throw new Error('Chat not found')
+      if (error) throw error
+      if (!chat) throw new Error('Chat not found')
 
-        const shareUrl = `${window.location.origin}/shared/${chat.share_id}`
-        return shareUrl
-      } catch (error) {
-        console.error('Error sharing chat:', error)
-        throw error
-      }
+      // Generate a unique share ID if it doesn't exist
+      const shareId = chat.share_id || crypto.randomUUID()
+
+      // Update the chat with the share ID and set it as shared
+      const { error: updateError } = await supabase
+        .from('chats')
+        .update({ 
+          share_id: shareId,
+          is_shared: true 
+        })
+        .eq('id', chatId)
+
+      if (updateError) throw updateError
+
+      // Return the full share URL
+      return `${window.location.origin}/shared/${shareId}`
     },
 
     unshareChat: async (chatId: string) => {
