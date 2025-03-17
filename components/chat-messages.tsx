@@ -1,10 +1,9 @@
 'use client'
 
 import { useStore } from '@/lib/store'
-import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { UserCircle, Bot } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export function ChatMessages() {
   const { chats, currentChatId } = useStore()
@@ -12,39 +11,63 @@ export function ChatMessages() {
 
   if (!currentChat) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-slate-400 dark:text-slate-500">Select a chat or create a new one to get started</p>
+      <div className="flex h-full items-center justify-center text-slate-500 dark:text-slate-400">
+        <p>Select a chat to start messaging</p>
+      </div>
+    )
+  }
+
+  if (currentChat.messages.length === 0) {
+    return (
+      <div className="flex h-full items-center justify-center text-slate-500 dark:text-slate-400">
+        <p>Send a message to start the conversation</p>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-6 py-8">
+    <div className="flex flex-col gap-6 p-4 md:p-6">
       {currentChat.messages.map((message) => (
         <div
           key={message.id}
           className={cn(
-            'flex w-full items-start gap-4 rounded-2xl p-6',
-            message.role === 'assistant' 
-              ? 'bg-gradient-to-br from-slate-100 to-white border border-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700' 
-              : 'bg-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:bg-slate-800/80 dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)]'
+            'flex w-full gap-4 rounded-xl p-4',
+            message.role === 'assistant'
+              ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:bg-slate-900 dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)]'
+              : 'bg-gradient-to-b from-indigo-50/50 to-white dark:from-indigo-950/50 dark:to-slate-900'
           )}
         >
-          <div className="shrink-0">
-            {message.role === 'assistant' ? (
-              <div className="rounded-full bg-gradient-to-br from-indigo-100 to-white border border-indigo-200 p-1 dark:from-indigo-900 dark:to-slate-800 dark:border-indigo-800">
-                <Bot className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
-            ) : (
-              <div className="rounded-full bg-gradient-to-br from-slate-100 to-white border border-slate-200 p-1 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700">
-                <UserCircle className="h-6 w-6 text-slate-600 dark:text-slate-400" />
-              </div>
-            )}
-          </div>
-          <div className="flex-1 overflow-x-hidden">
+          <div className="flex-1 space-y-4">
             <ReactMarkdown
-              className="prose max-w-none break-words text-slate-600 prose-headings:text-slate-800 prose-a:text-indigo-600 prose-strong:text-slate-800 prose-code:text-slate-800 prose-pre:bg-white prose-pre:shadow-sm prose-pre:border prose-pre:border-slate-200 dark:text-slate-300 dark:prose-headings:text-slate-200 dark:prose-a:text-indigo-400 dark:prose-strong:text-slate-200 dark:prose-code:text-slate-200 dark:prose-pre:bg-slate-800 dark:prose-pre:border-slate-700"
               remarkPlugins={[remarkGfm]}
+              className="prose prose-slate max-w-none dark:prose-invert prose-p:leading-normal prose-pre:p-0"
+              components={{
+                p: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>,
+                code: ({ node, inline, className, children, ...props }: {
+                  node?: any;
+                  inline?: boolean;
+                  className?: string;
+                  children: React.ReactNode;
+                } & React.HTMLAttributes<HTMLElement>) => {
+                  if (inline) {
+                    return (
+                      <code
+                        className="rounded bg-slate-100 px-1 py-0.5 font-mono text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+                        {...props}
+                      >
+                        {children}
+                      </code>
+                    )
+                  }
+                  return (
+                    <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-100 p-4 dark:bg-slate-800">
+                      <code className="block font-mono text-sm text-slate-800 dark:text-slate-200" {...props}>
+                        {children}
+                      </code>
+                    </pre>
+                  )
+                },
+              }}
             >
               {message.content}
             </ReactMarkdown>

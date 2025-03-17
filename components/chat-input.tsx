@@ -24,10 +24,7 @@ export function ChatInput() {
 
     try {
       // Add user message
-      addMessage(currentChat.id, {
-        content: userMessage,
-        role: 'user',
-      })
+      await addMessage(currentChat.id, userMessage, 'user')
 
       // If this is the first message, generate a title
       if (currentChat.messages.length === 0) {
@@ -38,7 +35,7 @@ export function ChatInput() {
             messages: [
               {
                 role: 'user',
-                content: `Create a single, specific title (2-5 words) for this Notion-related query. Do not provide options or explanations - respond only with the title itself. The title should be professional and descriptive, focusing on the main topic. Query: "${userMessage}"`,
+                content: `Create a single, specific title (2-4 words) for this Notion-related query. Do not provide options or explanations - respond only with the title itself. The title should be professional and descriptive, focusing on the main topic. Query: "${userMessage}"`,
               },
             ],
           }),
@@ -59,7 +56,7 @@ export function ChatInput() {
             .replace(/\s*\(.*?\)/g, '') // Remove parentheticals
             .split(/[.:\n]/)[0] // Take only the first line/segment
             .trim()
-          updateChatTitle(currentChat.id, cleanTitle)
+          await updateChatTitle(currentChat.id, cleanTitle)
         }
       }
 
@@ -83,18 +80,12 @@ export function ChatInput() {
       }
 
       // Add AI response
-      addMessage(currentChat.id, {
-        content: response.response,
-        role: 'assistant',
-      })
+      await addMessage(currentChat.id, response.response, 'assistant')
     } catch (error) {
       console.error('Error:', error)
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
       setError(errorMessage)
-      addMessage(currentChat.id, {
-        content: 'I encountered an error processing your request. Please try again.',
-        role: 'assistant',
-      })
+      await addMessage(currentChat.id, 'I encountered an error processing your request. Please try again.', 'assistant')
     } finally {
       setIsLoading(false)
     }

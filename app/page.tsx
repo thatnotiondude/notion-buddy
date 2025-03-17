@@ -4,9 +4,32 @@ import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { useRouter } from 'next/navigation'
 import { Sparkles, Layout, Clock, Lightbulb } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
+import { useEffect } from 'react'
 
 export default function Home() {
   const router = useRouter()
+  const { user, signInWithGoogle, loading } = useAuth()
+
+  // Handle authenticated users
+  useEffect(() => {
+    if (user && !loading) {
+      router.replace('/chat')
+    }
+  }, [user, loading, router])
+
+  const handleAction = async () => {
+    if (user) {
+      router.replace('/chat')
+      router.refresh()
+    } else {
+      try {
+        await signInWithGoogle()
+      } catch (error) {
+        console.error('Failed to sign in:', error)
+      }
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
@@ -53,16 +76,19 @@ export default function Home() {
 
         {/* CTA button */}
         <Button
-          onClick={() => router.push('/chat')}
-          className="group relative mt-4 overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 px-8 py-3 text-lg font-medium text-white transition-all hover:shadow-[0_8px_16px_rgba(79,70,229,0.3)] active:scale-[0.98]"
+          onClick={handleAction}
+          disabled={loading}
+          className="group relative mt-4 overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 px-8 py-3 text-lg font-medium text-white transition-all hover:shadow-[0_8px_16px_rgba(79,70,229,0.3)] active:scale-[0.98] disabled:opacity-70"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-          <span className="relative">Start Using Notion Buddy</span>
+          <span className="relative">
+            {loading ? 'Loading...' : user ? 'Continue to Chat' : 'Sign in with Google'}
+          </span>
         </Button>
 
         {/* Trust badge */}
         <p className="text-sm text-slate-500 dark:text-slate-500">
-          Powered by advanced AI technology • No sign-up required
+          Powered by advanced AI technology • Secure Google sign-in
         </p>
       </div>
     </div>
