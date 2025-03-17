@@ -19,9 +19,9 @@ export const useStore = create<ChatState>()((set, get) => {
   const supabase = createClientComponentClient()
 
   return {
-    chats: [],
+      chats: [],
     messages: {},
-    currentChatId: null,
+      currentChatId: null,
 
     fetchChats: async () => {
       try {

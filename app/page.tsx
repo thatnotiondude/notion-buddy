@@ -90,7 +90,7 @@ export default function Home() {
         <p className="text-sm text-slate-500 dark:text-slate-500">
           Powered by advanced AI technology • Secure Google sign-in
         </p>
-      </div>
+        </div>
     </div>
   )
 }

@@ -107,8 +107,8 @@ export function ChatInput() {
           className="flex-1 rounded-xl bg-gradient-to-b from-slate-100 to-white border border-slate-200 px-4 py-3 text-sm text-slate-600 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:text-slate-300 dark:placeholder:text-slate-500 dark:focus:ring-slate-700"
           disabled={isLoading}
         />
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           size="icon" 
           disabled={!input.trim() || !currentChatId || isLoading}
           className="h-11 w-11 rounded-xl bg-gradient-to-b from-slate-100 to-white border border-slate-200 text-slate-600 hover:text-slate-700 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:text-slate-400 dark:hover:text-slate-300 dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
@@ -116,6 +116,6 @@ export function ChatInput() {
           <SendIcon className="h-5 w-5" />
         </Button>
       </form>
-    </div>
+      </div>
   )
 } 

@@ -12,7 +12,7 @@ const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null
 const model = genAI?.getGenerativeModel({ 
   model: 'gemini-1.5-pro-001',
   generationConfig: {
-    maxOutputTokens: 2048,
+  maxOutputTokens: 2048,
     temperature: 0.7,
   }
 })
@@ -35,7 +35,7 @@ export async function generateResponse(messages: Message[]): Promise<string> {
 
     // Generate the response
     const result = await model.generateContent(context)
-    const response = await result.response
+  const response = await result.response
     return response.text()
   } catch (error) {
     console.error('Error generating response:', error)
