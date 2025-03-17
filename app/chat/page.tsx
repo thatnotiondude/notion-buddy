@@ -1,16 +1,19 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { ChatSidebar } from '@/components/chat-sidebar'
 import { ChatMessages } from '@/components/chat-messages'
 import { ChatInput } from '@/components/chat-input'
-import { ChatSidebar } from '@/components/chat-sidebar'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { MobileSidebarToggle } from '@/components/mobile-sidebar-toggle'
 
 export default function ChatPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
+  const router = useRouter()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -20,8 +23,8 @@ export default function ChatPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-white dark:bg-slate-950">
-        <div className="text-lg text-slate-600 dark:text-slate-400">Loading...</div>
+      <div className="flex h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     )
   }
@@ -31,26 +34,30 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="relative flex h-screen overflow-hidden bg-white dark:bg-slate-950">
-      {/* Theme toggle in top right */}
-      <div className="absolute right-4 top-4 z-50">
+    <div className="flex h-screen flex-col">
+      <header className="flex items-center justify-between border-b px-4 py-2">
+        <div className="flex items-center gap-2">
+          <MobileSidebarToggle
+            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            isOpen={isSidebarOpen}
+          />
+          <h1 className="text-lg font-semibold">Notion Buddy</h1>
+        </div>
         <ThemeToggle />
-      </div>
+      </header>
 
-      {/* Sidebar */}
-      <div className="w-80 flex-shrink-0 border-r border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
-        <ChatSidebar />
-      </div>
-
-      {/* Main chat area */}
-      <div className="flex flex-1 flex-col">
-        {/* Messages area with gradient background */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-b from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
-          <ChatMessages />
+      <div className="flex flex-1 overflow-hidden">
+        <div
+          className={`
+            fixed inset-y-0 left-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out dark:bg-slate-900 md:relative md:translate-x-0
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}
+        >
+          <ChatSidebar />
         </div>
 
-        {/* Input area with blur effect */}
-        <div className="border-t border-slate-200 bg-white/80 p-4 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80">
+        <div className="flex flex-1 flex-col">
+          <ChatMessages />
           <ChatInput />
         </div>
       </div>
