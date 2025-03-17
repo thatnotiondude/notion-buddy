@@ -52,7 +52,7 @@ export default function ChatPage() {
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           `}
         >
-          <ChatSidebar />
+          <ChatSidebar onClose={() => setIsSidebarOpen(false)} />
         </div>
 
         <div className="flex flex-1 flex-col">

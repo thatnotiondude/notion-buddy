@@ -1,24 +1,40 @@
 'use client'
 
 import { useStore } from '@/lib/store'
-import { Plus } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { Button } from './ui/button'
 import { cn } from '@/lib/utils'
 
-export function ChatSidebar() {
+interface ChatSidebarProps {
+  onClose?: () => void
+}
+
+export function ChatSidebar({ onClose }: ChatSidebarProps) {
   const { chats, currentChatId, addChat, setCurrentChat, deleteChat } = useStore()
 
   const handleAddChat = async () => {
     const newChat = await addChat()
     if (newChat) {
       setCurrentChat(newChat.id)
+      // Close sidebar on mobile after creating a new chat
+      onClose?.()
     }
   }
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b p-4">
-        <h2 className="text-lg font-semibold">Chats</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold">Chats</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden h-8 w-8"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -43,7 +59,11 @@ export function ChatSidebar() {
             >
               <button
                 className="flex-1 truncate text-left"
-                onClick={() => setCurrentChat(chat.id)}
+                onClick={() => {
+                  setCurrentChat(chat.id)
+                  // Close sidebar on mobile after selecting a chat
+                  onClose?.()
+                }}
               >
                 {chat.title}
               </button>
