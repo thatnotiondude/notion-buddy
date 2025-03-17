@@ -47,7 +47,7 @@ export function ChatMessages() {
                   node?: any;
                   inline?: boolean;
                   className?: string;
-                  children: React.ReactNode;
+                  children?: React.ReactNode;
                 } & React.HTMLAttributes<HTMLElement>) => {
                   if (inline) {
                     return (
