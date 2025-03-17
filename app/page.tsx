@@ -3,17 +3,9 @@
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { useRouter } from 'next/navigation'
-import { useStore } from '@/lib/store'
 
 export default function Home() {
   const router = useRouter()
-  const { addChat } = useStore()
-
-  const handleEnter = () => {
-    // Create a new chat and navigate to it
-    addChat()
-    router.push('/chat')
-  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
@@ -35,7 +27,7 @@ export default function Home() {
 
         {/* Enter button */}
         <Button
-          onClick={handleEnter}
+          onClick={() => router.push('/chat')}
           className="group relative mt-4 overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 px-8 py-3 text-lg font-medium text-white transition-all hover:shadow-[0_8px_16px_rgba(79,70,229,0.3)] active:scale-[0.98]"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
