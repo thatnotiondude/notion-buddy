@@ -3,9 +3,13 @@
 import { useState } from 'react'
 import { useStore } from '@/lib/store'
 import { Button } from './ui/button'
-import { SendIcon } from 'lucide-react'
+import { Send } from 'lucide-react'
 
-export function ChatInput() {
+interface ChatInputProps {
+  disabled?: boolean
+}
+
+export function ChatInput({ disabled = false }: ChatInputProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -15,7 +19,7 @@ export function ChatInput() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentChat || !input.trim() || isLoading) return
+    if (!currentChat || !input.trim() || isLoading || disabled) return
 
     const userMessage = input.trim()
     setInput('')
@@ -105,17 +109,17 @@ export function ChatInput() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask about Notion templates, features, or best practices..."
           className="flex-1 rounded-xl bg-gradient-to-b from-slate-100 to-white border border-slate-200 px-4 py-3 text-sm text-slate-600 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:text-slate-300 dark:placeholder:text-slate-500 dark:focus:ring-slate-700"
-          disabled={isLoading}
+          disabled={disabled || isLoading}
         />
         <Button
           type="submit"
           size="icon" 
-          disabled={!input.trim() || !currentChatId || isLoading}
+          disabled={!input.trim() || !currentChatId || disabled || isLoading}
           className="h-11 w-11 rounded-xl bg-gradient-to-b from-slate-100 to-white border border-slate-200 text-slate-600 hover:text-slate-700 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:text-slate-400 dark:hover:text-slate-300 dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
         >
-          <SendIcon className="h-5 w-5" />
+          <Send className="h-5 w-5" />
         </Button>
       </form>
-      </div>
+    </div>
   )
 } 

@@ -35,22 +35,22 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <Button
+      <Button
           variant="ghost"
           size="icon"
           onClick={handleAddChat}
           className="h-8 w-8"
         >
           <Plus className="h-4 w-4" />
-        </Button>
+      </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
         <div className="space-y-1">
-          {chats.map((chat) => (
-            <div
-              key={chat.id}
-              className={cn(
+        {chats.map((chat) => (
+          <div
+            key={chat.id}
+            className={cn(
                 'group flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-800',
                 currentChatId === chat.id
                   ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50'
@@ -87,8 +87,8 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
                   <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                 </svg>
               </button>
-            </div>
-          ))}
+          </div>
+        ))}
         </div>
       </div>
     </div>

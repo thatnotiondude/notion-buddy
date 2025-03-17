@@ -8,17 +8,35 @@ import { ChatMessages } from '@/components/chat-messages'
 import { ChatInput } from '@/components/chat-input'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { MobileSidebarToggle } from '@/components/mobile-sidebar-toggle'
+import { ShareButton } from '@/components/share-button'
+import { useStore } from '@/lib/store'
 
 export default function ChatPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const { currentChatId, shareChat } = useStore()
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace('/')
     }
   }, [user, loading, router])
+
+  useEffect(() => {
+    const generateShareUrl = async () => {
+      if (currentChatId) {
+        try {
+          const url = await shareChat(currentChatId)
+          setShareUrl(url)
+        } catch (error) {
+          console.error('Error generating share URL:', error)
+        }
+      }
+    }
+    generateShareUrl()
+  }, [currentChatId, shareChat])
 
   if (loading) {
     return (
@@ -42,7 +60,10 @@ export default function ChatPage() {
           />
           <h1 className="text-lg font-semibold">Notion Buddy</h1>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          {shareUrl && <ShareButton shareUrl={shareUrl} />}
+          <ThemeToggle />
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -55,9 +76,13 @@ export default function ChatPage() {
           <ChatSidebar onClose={() => setIsSidebarOpen(false)} />
         </div>
 
-        <div className="flex flex-1 flex-col">
-          <ChatMessages />
-          <ChatInput />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
+            <ChatMessages />
+          </div>
+          <div className="border-t bg-white/80 backdrop-blur-sm dark:bg-slate-900/80">
+            <ChatInput />
+          </div>
         </div>
       </div>
     </div>

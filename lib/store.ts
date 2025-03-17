@@ -13,6 +13,8 @@ interface ChatState {
   deleteChat: (chatId: string) => Promise<void>
   fetchChats: () => Promise<void>
   fetchMessages: (chatId: string) => Promise<void>
+  shareChat: (chatId: string) => Promise<string>
+  unshareChat: (chatId: string) => Promise<void>
 }
 
 export const useStore = create<ChatState>()((set, get) => {
@@ -218,6 +220,48 @@ export const useStore = create<ChatState>()((set, get) => {
         console.error('Error in deleteChat:', error)
         throw error
       }
-    }
+    },
+
+    shareChat: async (chatId: string) => {
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        if (userError) throw userError
+        if (!user) throw new Error('No authenticated user')
+
+        const { data: chat, error: updateError } = await supabase
+          .from('chats')
+          .update({ is_shared: true })
+          .eq('id', chatId)
+          .select()
+          .single()
+
+        if (updateError) throw updateError
+        if (!chat) throw new Error('Chat not found')
+
+        const shareUrl = `${window.location.origin}/shared/${chat.share_id}`
+        return shareUrl
+      } catch (error) {
+        console.error('Error sharing chat:', error)
+        throw error
+      }
+    },
+
+    unshareChat: async (chatId: string) => {
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        if (userError) throw userError
+        if (!user) throw new Error('No authenticated user')
+
+        const { error: updateError } = await supabase
+          .from('chats')
+          .update({ is_shared: false })
+          .eq('id', chatId)
+
+        if (updateError) throw updateError
+      } catch (error) {
+        console.error('Error unsharing chat:', error)
+        throw error
+      }
+    },
   }
 }) 
