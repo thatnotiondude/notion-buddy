@@ -16,7 +16,7 @@ export default function ChatPage() {
   const router = useRouter()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
-  const { currentChatId, shareChat } = useStore()
+  const { currentChatId, shareChat, chats } = useStore()
 
   useEffect(() => {
     if (!loading && !user) {
@@ -33,10 +33,14 @@ export default function ChatPage() {
         } catch (error) {
           console.error('Error generating share URL:', error)
         }
+      } else {
+        setShareUrl(null)
       }
     }
     generateShareUrl()
   }, [currentChatId, shareChat])
+
+  const currentChat = chats.find(chat => chat.id === currentChatId)
 
   if (loading) {
     return (
@@ -58,10 +62,12 @@ export default function ChatPage() {
             onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
             isOpen={isSidebarOpen}
           />
-          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-50">Notion Buddy</h1>
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+            {currentChat?.title || 'Notion Buddy'}
+          </h1>
         </div>
         <div className="flex items-center gap-2">
-          {shareUrl && <ShareButton shareUrl={shareUrl} />}
+          {currentChat && shareUrl && <ShareButton shareUrl={shareUrl} />}
           <ThemeToggle />
         </div>
       </header>
