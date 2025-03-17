@@ -49,7 +49,7 @@ export function ChatMessages({ messages, isSharedView = false }: ChatMessagesPro
           <div className="flex-1 space-y-3 sm:space-y-4">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              className="prose prose-slate max-w-none dark:prose-invert prose-p:leading-normal prose-pre:p-0 prose-sm sm:prose-base"
+              className="prose prose-slate max-w-none dark:prose-invert prose-p:leading-normal prose-pre:p-0 prose-sm sm:prose-base prose-headings:text-slate-900 dark:prose-headings:text-slate-50 prose-p:text-slate-700 dark:prose-p:text-slate-300"
               components={{
                 p: ({ children }) => <p className="mb-3 last:mb-0 sm:mb-4">{children}</p>,
                 code: ({ node, inline, className, children, ...props }: {
@@ -69,7 +69,7 @@ export function ChatMessages({ messages, isSharedView = false }: ChatMessagesPro
                     )
                   }
                   return (
-                    <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-100 p-3 sm:p-4">
+                    <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-100 p-3 sm:p-4 dark:bg-slate-800">
                       <code className="block font-mono text-xs sm:text-sm text-slate-800 dark:text-slate-200" {...props}>
                         {children}
                       </code>
