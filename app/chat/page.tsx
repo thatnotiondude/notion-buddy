@@ -10,7 +10,6 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { MobileSidebarToggle } from '@/components/mobile-sidebar-toggle'
 
 export default function ChatPage() {
-  const router = useRouter()
   const { user, loading } = useAuth()
   const router = useRouter()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
