@@ -54,73 +54,51 @@ export function ChatMessages({ messages, isSharedView = false }: ChatMessagesPro
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4">
-      <div className="mx-auto max-w-3xl space-y-4">
-        {displayMessages.map((message) => (
+    <div className="flex-1 overflow-y-auto bg-slate-50 px-4 py-6 dark:bg-slate-950">
+      <div className="mx-auto max-w-3xl space-y-6">
+        {displayMessages.map((message, index) => (
           <div
-            key={message.id}
+            key={index}
             className={cn(
-              'flex w-full',
-              message.role === 'user' ? 'justify-end' : 'justify-start'
+              'group relative rounded-lg px-4 py-3',
+              message.role === 'user'
+                ? 'ml-auto max-w-[85%] bg-blue-50 text-blue-900 dark:bg-blue-950 dark:text-blue-100'
+                : 'mr-auto max-w-[85%] bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100'
             )}
           >
-            <div
-              className={cn(
-                'max-w-[80%] rounded-lg px-4 py-2',
-                message.role === 'user'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50'
-              )}
-            >
+            <div className="prose prose-sm max-w-none dark:prose-invert">
               <ReactMarkdown
-                className={cn(
-                  'prose prose-sm max-w-none break-words dark:prose-invert',
-                  'prose-headings:text-slate-900 dark:prose-headings:text-slate-50',
-                  'prose-p:text-slate-700 dark:prose-p:text-slate-300',
-                  'prose-strong:text-slate-900 dark:prose-strong:text-slate-50',
-                  'prose-code:text-slate-900 dark:prose-code:text-slate-50',
-                  'prose-pre:bg-slate-100 dark:prose-pre:bg-slate-800',
-                  'prose-pre:text-slate-900 dark:prose-pre:text-slate-50',
-                  'prose-blockquote:text-slate-700 dark:prose-blockquote:text-slate-300',
-                  'prose-ul:text-slate-700 dark:prose-ul:text-slate-300',
-                  'prose-ol:text-slate-700 dark:prose-ol:text-slate-300',
-                  'prose-li:text-slate-700 dark:prose-li:text-slate-300',
-                  'prose-hr:border-slate-200 dark:prose-hr:border-slate-700',
-                  'prose-table:text-slate-700 dark:prose-table:text-slate-300',
-                  'prose-th:text-slate-900 dark:prose-th:text-slate-50',
-                  'prose-td:text-slate-700 dark:prose-td:text-slate-300'
-                )}
                 components={{
-                  code({ node, inline, className, children, ...props }: CodeProps) {
+                  code: ({ node, inline, className, children, ...props }: CodeProps) => {
                     const match = /language-(\w+)/.exec(className || '')
                     return !inline && match ? (
                       <SyntaxHighlighter
-                        style={vscDarkPlus as Record<string, React.CSSProperties>}
+                        style={vscDarkPlus}
                         language={match[1]}
                         PreTag="div"
+                        className="!bg-slate-100 dark:!bg-slate-800"
                         {...props}
                       >
                         {String(children).replace(/\n$/, '')}
                       </SyntaxHighlighter>
                     ) : (
-                      <code
-                        className="rounded bg-slate-100 px-1 py-0.5 text-slate-900 dark:bg-slate-800 dark:text-slate-50"
-                        {...props}
-                      >
+                      <code className="rounded bg-slate-100 px-1 py-0.5 text-sm dark:bg-slate-800" {...props}>
                         {children}
                       </code>
                     )
                   },
-                  pre({ children, ...props }) {
-                    return (
-                      <pre
-                        className="rounded-lg bg-slate-100 p-4 text-slate-900 dark:bg-slate-800 dark:text-slate-50"
-                        {...props}
-                      >
-                        {children}
-                      </pre>
-                    )
-                  },
+                  p: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>,
+                  ul: ({ children }) => <ul className="mb-4 list-disc pl-6 last:mb-0">{children}</ul>,
+                  ol: ({ children }) => <ol className="mb-4 list-decimal pl-6 last:mb-0">{children}</ol>,
+                  li: ({ children }) => <li className="mb-2 last:mb-0">{children}</li>,
+                  h1: ({ children }) => <h1 className="mb-4 text-2xl font-bold">{children}</h1>,
+                  h2: ({ children }) => <h2 className="mb-3 text-xl font-semibold">{children}</h2>,
+                  h3: ({ children }) => <h3 className="mb-2 text-lg font-medium">{children}</h3>,
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-4 border-slate-200 pl-4 italic text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                      {children}
+                    </blockquote>
+                  ),
                 }}
               >
                 {message.content}

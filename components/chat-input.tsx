@@ -111,30 +111,36 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
   }
 
   return (
-    <div className="space-y-2">
-      {error && (
-        <div className="flex items-center gap-2 rounded-lg bg-red-50 p-2 text-sm text-red-500">
-          <p>{error}</p>
+    <form onSubmit={handleSubmit} className="border-t border-slate-200 bg-white/80 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80">
+      <div className="mx-auto max-w-3xl px-4 py-4">
+        <div className="flex items-end gap-2">
+          <div className="relative flex-1">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about Notion..."
+              className="min-h-[60px] w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+              disabled={isLoading || disabled}
+            />
+            {error && (
+              <p className="absolute -bottom-6 left-0 text-sm text-red-500 dark:text-red-400">
+                {error}
+              </p>
+            )}
+          </div>
+          <Button
+            type="submit"
+            disabled={isLoading || disabled || !input.trim()}
+            className="h-[60px] w-[60px] rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-slate-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-slate-700"
+          >
+            {isLoading ? (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              <Send className="h-5 w-5" />
+            )}
+          </Button>
         </div>
-      )}
-      <form onSubmit={handleSubmit} className="flex items-center gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about Notion templates, features, or best practices..."
-          className="flex-1 rounded-xl bg-gradient-to-b from-slate-100 to-white border border-slate-200 px-4 py-3 text-sm text-slate-600 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:text-slate-300 dark:placeholder:text-slate-500 dark:focus:ring-slate-700"
-          disabled={disabled || isLoading}
-        />
-        <Button
-          type="submit"
-          size="icon" 
-          disabled={!input.trim() || !currentChatId || disabled || isLoading}
-          className="h-11 w-11 rounded-xl bg-gradient-to-b from-slate-100 to-white border border-slate-200 text-slate-600 hover:text-slate-700 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:text-slate-400 dark:hover:text-slate-300 dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
-        >
-          <Send className="h-5 w-5" />
-        </Button>
-      </form>
       </div>
+    </form>
   )
 } 

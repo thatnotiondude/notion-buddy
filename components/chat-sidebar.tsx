@@ -29,9 +29,9 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
             variant="ghost"
             size="icon"
             onClick={() => addChat('New Chat')}
-            className="h-8 w-8"
+            className="h-8 w-8 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
           >
-            <Plus className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
 
@@ -60,9 +60,9 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => deleteChat(chat.id)}
-                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                  className="h-6 w-6 opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400"
                 >
-                  <Trash2 className="h-4 w-4 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             ))}
