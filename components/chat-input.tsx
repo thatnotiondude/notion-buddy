@@ -25,11 +25,14 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
     let chatToUse = currentChat
     if (!chatToUse) {
       try {
+        console.log('Creating new chat...')
         chatToUse = await addChat()
         if (!chatToUse) {
           throw new Error('Failed to create new chat')
         }
+        console.log('New chat created:', chatToUse.id)
       } catch (error) {
+        console.error('Error creating chat:', error)
         setError('Failed to create new chat')
         setIsLoading(false)
         return
@@ -42,11 +45,14 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
     setIsLoading(true)
 
     try {
+      console.log('Adding user message...')
       // Add user message
       await addMessage(chatToUse.id, userMessage, 'user')
+      console.log('User message added successfully')
 
       // If this is the first message, generate a title
       if (!chatToUse.messages || chatToUse.messages.length === 0) {
+        console.log('Generating title...')
         const titleResponse = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -61,10 +67,12 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
         }).then((res) => res.json())
 
         if (titleResponse.error) {
+          console.error('Error generating title:', titleResponse.error)
           throw new Error(titleResponse.error)
         }
 
         if (titleResponse.response) {
+          console.log('Title generated:', titleResponse.response)
           // Clean up the title by removing any explanatory text and formatting
           const cleanTitle = titleResponse.response
             .replace(/^["']|["']$/g, '') // Remove quotes
@@ -76,10 +84,12 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
             .split(/[.:\n]/)[0] // Take only the first line/segment
             .trim()
           await updateChatTitle(chatToUse.id, cleanTitle)
+          console.log('Title updated:', cleanTitle)
         }
       }
 
       // Get AI response
+      console.log('Getting AI response...')
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,11 +105,14 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
       }).then((res) => res.json())
 
       if (response.error) {
+        console.error('Error getting AI response:', response.error)
         throw new Error(response.error)
       }
 
+      console.log('AI response received, adding to chat...')
       // Add AI response
       await addMessage(chatToUse.id, response.response, 'assistant')
+      console.log('AI response added successfully')
     } catch (error) {
       console.error('Error in chat:', error)
       setError(error instanceof Error ? error.message : 'Failed to send message. Please try again.')
@@ -107,11 +120,13 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
       // If we failed after sending the user message, add an error message to the chat
       if (chatToUse) {
         try {
+          console.log('Adding error message to chat...')
           await addMessage(
             chatToUse.id,
             'I encountered an error processing your request. Please try again.',
             'assistant'
           )
+          console.log('Error message added successfully')
         } catch (e) {
           console.error('Error adding error message:', e)
         }
