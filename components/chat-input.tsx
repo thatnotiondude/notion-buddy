@@ -118,7 +118,15 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about Notion..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  if (!isLoading && !disabled && input.trim()) {
+                    handleSubmit(e)
+                  }
+                }
+              }}
+              placeholder="Ask about Notion... (Press Enter to send, Shift+Enter for new line)"
               rows={1}
               className="max-h-48 min-h-[44px] w-full resize-none bg-transparent px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-500"
               style={{

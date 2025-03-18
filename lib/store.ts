@@ -8,7 +8,7 @@ interface ChatState {
   currentChatId: string | null
   addChat: (title?: string) => Promise<Chat & { messages: Message[] } | undefined>
   setCurrentChat: (chatId: string) => void
-  addMessage: (chatId: string, content: string, role: 'user' | 'assistant') => Promise<void>
+  addMessage: (chatId: string, content: string, role: 'user' | 'assistant', index?: number) => Promise<void>
   updateChatTitle: (chatId: string, title: string) => Promise<void>
   deleteChat: (chatId: string) => Promise<void>
   fetchChats: () => Promise<void>
@@ -113,48 +113,78 @@ export const useStore = create<ChatState>()((set, get) => {
       }
     },
 
-    addMessage: async (chatId, content, role) => {
+    addMessage: async (chatId: string, content: string, role: 'user' | 'assistant', index?: number) => {
       try {
-        const { data: message, error: insertError } = await supabase
-          .from('messages')
-          .insert({
-            chat_id: chatId,
-            content,
-            role
-          })
-          .select()
-          .single()
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        if (userError) throw userError
+        if (!user) throw new Error('No authenticated user')
 
-        if (insertError) throw insertError
-        if (!message) throw new Error('No message returned after insert')
+        // If index is provided, we're updating an existing message
+        if (typeof index === 'number') {
+          const { data: existingMessage, error: messageError } = await supabase
+            .from('messages')
+            .select('id')
+            .eq('chat_id', chatId)
+            .order('created_at', { ascending: true })
+            .range(index, index)
+            .single()
 
-        set((state) => {
-          // Ensure messages array exists for the chat
-          const currentChatMessages = state.messages[chatId] || []
-          
-          return {
+          if (messageError) throw messageError
+          if (!existingMessage) throw new Error('Message not found')
+
+          const { error: updateError } = await supabase
+            .from('messages')
+            .update({ content })
+            .eq('id', existingMessage.id)
+
+          if (updateError) throw updateError
+
+          // Update local state
+          set(state => ({
             chats: state.chats.map(chat => {
-            if (chat.id === chatId) {
-              return {
-                ...chat,
-                  messages: [...(chat.messages || []), message]
-                }
+              if (chat.id === chatId) {
+                const newMessages = [...chat.messages]
+                newMessages[index] = { ...newMessages[index], content }
+                return { ...chat, messages: newMessages }
               }
               return chat
-            }),
-            messages: {
-              ...state.messages,
-              [chatId]: [...currentChatMessages, message]
-            }
-          }
-        })
+            })
+          }))
+        } else {
+          // Add new message
+          const { data: message, error: messageError } = await supabase
+            .from('messages')
+            .insert([
+              {
+                chat_id: chatId,
+                content,
+                role,
+                user_id: user.id,
+              },
+            ])
+            .select()
+            .single()
+
+          if (messageError) throw messageError
+          if (!message) throw new Error('No message returned')
+
+          // Update local state
+          set(state => ({
+            chats: state.chats.map(chat => {
+              if (chat.id === chatId) {
+                return { ...chat, messages: [...chat.messages, message] }
+              }
+              return chat
+            })
+          }))
+        }
 
         await supabase
           .from('chats')
           .update({ updated_at: new Date().toISOString() })
           .eq('id', chatId)
       } catch (error) {
-        console.error('Error in addMessage:', error)
+        console.error('Error adding/updating message:', error)
         throw error
       }
     },
