@@ -112,34 +112,45 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
 
   return (
     <form onSubmit={handleSubmit} className="border-t border-slate-200 bg-white/80 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80">
-      <div className="mx-auto max-w-3xl px-4 py-4">
-        <div className="flex items-end gap-2">
-          <div className="relative flex-1">
+      <div className="mx-auto max-w-3xl p-4">
+        <div className="relative flex items-end gap-2">
+          <div className="relative flex-1 overflow-hidden rounded-lg border border-slate-200 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-slate-700 dark:bg-slate-800">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about Notion..."
-              className="min-h-[60px] w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+              rows={1}
+              className="max-h-48 min-h-[44px] w-full resize-none bg-transparent px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-500"
+              style={{
+                overflow: 'hidden',
+                height: 'auto'
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement
+                target.style.height = 'auto'
+                target.style.height = `${Math.min(target.scrollHeight, 192)}px`
+              }}
               disabled={isLoading || disabled}
             />
-            {error && (
-              <p className="absolute -bottom-6 left-0 text-sm text-red-500 dark:text-red-400">
-                {error}
-              </p>
-            )}
           </div>
           <Button
             type="submit"
+            size="icon"
             disabled={isLoading || disabled || !input.trim()}
-            className="h-[60px] w-[60px] rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-slate-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-slate-700"
+            className="h-11 w-11 shrink-0 rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:bg-slate-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-slate-700"
           >
             {isLoading ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70" />
             ) : (
-              <Send className="h-5 w-5" />
+              <Send className="h-4 w-4" />
             )}
           </Button>
         </div>
+        {error && (
+          <p className="mt-2 text-sm text-red-500 dark:text-red-400">
+            {error}
+          </p>
+        )}
       </div>
     </form>
   )
