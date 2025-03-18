@@ -20,17 +20,35 @@ export async function POST(req: Request) {
     }
 
     const response = await generateResponse(messages)
+    
+    if (!response) {
+      throw new Error('No response generated from the AI model')
+    }
+
     return NextResponse.json({ response })
   } catch (error) {
     console.error('Error in chat API:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Failed to generate response'
     
-    // Determine appropriate status code based on error
-    const status = errorMessage.includes('API key') || errorMessage.includes('permissions') ? 401 : 500
+    if (error instanceof Error) {
+      // Determine appropriate status code based on error message
+      let status = 500
+      if (error.message.includes('API key') || error.message.includes('permissions')) {
+        status = 401
+      } else if (error.message.includes('Rate limit')) {
+        status = 429
+      } else if (error.message.includes('Invalid messages format')) {
+        status = 400
+      }
+      
+      return NextResponse.json(
+        { error: error.message },
+        { status }
+      )
+    }
     
     return NextResponse.json(
-      { error: errorMessage },
-      { status }
+      { error: 'An unexpected error occurred. Please try again.' },
+      { status: 500 }
     )
   }
 } 
