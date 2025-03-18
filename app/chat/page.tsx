@@ -59,7 +59,7 @@ export default function ChatPage() {
   const currentChat = chats.find(chat => chat.id === currentChatId)
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col bg-white dark:bg-slate-950">
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center gap-2">
           <MobileSidebarToggle
@@ -81,7 +81,7 @@ export default function ChatPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 w-full overflow-hidden bg-white dark:bg-slate-950">
         <div
           className={cn(
             'fixed inset-y-0 left-0 z-50 w-64 transform bg-white transition-transform duration-200 ease-in-out dark:bg-slate-900',
@@ -92,7 +92,7 @@ export default function ChatPage() {
           <ChatSidebar onClose={() => setIsSidebarOpen(false)} />
         </div>
 
-        <main className="flex flex-1 flex-col overflow-hidden">
+        <main className="flex flex-1 w-full flex-col overflow-hidden bg-white dark:bg-slate-950">
           <ChatMessages messages={currentChat?.messages} />
           <ChatInput />
         </main>

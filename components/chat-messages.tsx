@@ -35,7 +35,7 @@ export function ChatMessages({ messages, isSharedView = false }: ChatMessagesPro
 
   if (!isSharedView && !currentChat && !messages) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full w-full items-center justify-center bg-white dark:bg-slate-950">
         <p className="text-slate-500 dark:text-slate-400">
           Select a chat or send a message to get started
         </p>
@@ -45,7 +45,7 @@ export function ChatMessages({ messages, isSharedView = false }: ChatMessagesPro
 
   if (displayMessages.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full w-full items-center justify-center bg-white dark:bg-slate-950">
         <p className="text-slate-500 dark:text-slate-400">
           No messages yet. Start a conversation!
         </p>
@@ -54,8 +54,8 @@ export function ChatMessages({ messages, isSharedView = false }: ChatMessagesPro
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-white px-4 py-6 dark:bg-slate-950">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <div className="flex-1 w-full overflow-y-auto bg-white dark:bg-slate-950">
+      <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
         {displayMessages.map((message, index) => (
           <div
             key={index}
