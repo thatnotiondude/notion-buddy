@@ -22,7 +22,17 @@ type Message = {
   content: string
 }
 
-export async function generateResponse(messages: Message[]): Promise<string> {
+// Helper function to delay execution
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+// Helper function to check if error is retryable
+const isRetryableError = (error: Error): boolean => {
+  return error.message.includes('503') || 
+         error.message.includes('overloaded') ||
+         error.message.includes('rate limit')
+}
+
+export async function generateResponse(messages: Message[], retries = 3): Promise<string> {
   if (!genAI || !model) {
     throw new Error('Google AI is not properly configured. Please check your environment variables.')
   }
@@ -55,6 +65,14 @@ export async function generateResponse(messages: Message[]): Promise<string> {
     console.error('Error generating response:', error)
     
     if (error instanceof Error) {
+      // Check if we should retry
+      if (isRetryableError(error) && retries > 0) {
+        const backoffTime = Math.pow(2, 4 - retries) * 1000 // Exponential backoff: 1s, 2s, 4s
+        console.log(`Retrying in ${backoffTime/1000} seconds... (${retries} attempts remaining)`)
+        await delay(backoffTime)
+        return generateResponse(messages, retries - 1)
+      }
+
       if (error.message.includes('404')) {
         throw new Error('Unable to access the AI model. Please check your API key and permissions.')
       }
@@ -63,6 +81,9 @@ export async function generateResponse(messages: Message[]): Promise<string> {
       }
       if (error.message.includes('401') || error.message.includes('403')) {
         throw new Error('Invalid API key or insufficient permissions.')
+      }
+      if (error.message.includes('503') || error.message.includes('overloaded')) {
+        throw new Error('The AI model is currently overloaded. Please try again in a few moments.')
       }
       throw new Error(`AI response error: ${error.message}`)
     }
