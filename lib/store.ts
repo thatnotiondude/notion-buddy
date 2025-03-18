@@ -6,7 +6,7 @@ interface ChatState {
   chats: (Chat & { messages: Message[] })[]
   messages: { [chatId: string]: Message[] }
   currentChatId: string | null
-  addChat: () => Promise<Chat & { messages: Message[] } | undefined>
+  addChat: (title?: string) => Promise<Chat & { messages: Message[] } | undefined>
   setCurrentChat: (chatId: string) => void
   addMessage: (chatId: string, content: string, role: 'user' | 'assistant') => Promise<void>
   updateChatTitle: (chatId: string, title: string) => Promise<void>
@@ -70,51 +70,31 @@ export const useStore = create<ChatState>()((set, get) => {
       }
     },
 
-    addChat: async () => {
+    addChat: async (title: string = 'New Chat') => {
       try {
-        console.log('Starting chat creation process...')
-        
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        if (userError) {
-          console.error('Error getting user:', userError)
-          throw userError
-        }
-        if (!user) {
-          console.error('No authenticated user found')
-          throw new Error('No authenticated user')
-        }
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not authenticated')
 
-        console.log('Creating chat for user:', user.id)
-
-        const { data: chat, error: insertError } = await supabase
+        const { data: chat, error } = await supabase
           .from('chats')
           .insert({
             user_id: user.id,
-            title: 'New Chat'
+            title: title
           })
           .select()
           .single()
 
-        if (insertError) {
-          console.error('Error inserting chat:', insertError)
-          throw insertError
-        }
-        if (!chat) {
-          console.error('No chat returned after insert')
-          throw new Error('No chat returned after insert')
-        }
+        if (error) throw error
+        if (!chat) throw new Error('Failed to create chat')
 
-        console.log('Chat created successfully:', chat)
-
-        const newChat = { ...chat, messages: [] }
         set((state) => ({
-          chats: [newChat, ...state.chats],
+          chats: [...state.chats, chat],
           currentChatId: chat.id
         }))
 
-        return newChat
+        return chat
       } catch (error) {
-        console.error('Failed to create chat:', error)
+        console.error('Error creating chat:', error)
         throw error
       }
     },
@@ -225,17 +205,32 @@ export const useStore = create<ChatState>()((set, get) => {
     shareChat: async (chatId: string) => {
       try {
         console.log('Starting share process for chat:', chatId)
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) throw new Error('Not authenticated')
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        if (userError) {
+          console.error('Error getting user:', userError)
+          throw userError
+        }
+        if (!user) {
+          console.error('No authenticated user')
+          throw new Error('Not authenticated')
+        }
 
-        const { data: chat, error } = await supabase
+        // First check if the chat exists and belongs to the user
+        const { data: chat, error: chatError } = await supabase
           .from('chats')
           .select('*')
           .eq('id', chatId)
+          .eq('user_id', user.id)
           .single()
 
-        if (error) throw error
-        if (!chat) throw new Error('Chat not found')
+        if (chatError) {
+          console.error('Error fetching chat:', chatError)
+          throw chatError
+        }
+        if (!chat) {
+          console.error('Chat not found or does not belong to user')
+          throw new Error('Chat not found or does not belong to user')
+        }
 
         // Generate a unique share ID if it doesn't exist
         const shareId = chat.share_id || crypto.randomUUID()
@@ -249,8 +244,12 @@ export const useStore = create<ChatState>()((set, get) => {
             is_shared: true 
           })
           .eq('id', chatId)
+          .eq('user_id', user.id) // Ensure we can only update our own chats
 
-        if (updateError) throw updateError
+        if (updateError) {
+          console.error('Error updating chat:', updateError)
+          throw updateError
+        }
 
         // Return the full share URL
         const shareUrl = `${window.location.origin}/shared/${shareId}`
