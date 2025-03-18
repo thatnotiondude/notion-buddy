@@ -128,21 +128,26 @@ export const useStore = create<ChatState>()((set, get) => {
         if (insertError) throw insertError
         if (!message) throw new Error('No message returned after insert')
 
-        set((state) => ({
-          chats: state.chats.map(chat => {
-            if (chat.id === chatId) {
-              return {
-                ...chat,
-                messages: [...chat.messages, message]
+        set((state) => {
+          // Ensure messages array exists for the chat
+          const currentChatMessages = state.messages[chatId] || []
+          
+          return {
+            chats: state.chats.map(chat => {
+              if (chat.id === chatId) {
+                return {
+                  ...chat,
+                  messages: [...(chat.messages || []), message]
+                }
               }
+              return chat
+            }),
+            messages: {
+              ...state.messages,
+              [chatId]: [...currentChatMessages, message]
             }
-            return chat
-          }),
-          messages: {
-            ...state.messages,
-            [chatId]: [...(state.messages[chatId] || []), message]
           }
-        }))
+        })
 
         await supabase
           .from('chats')
