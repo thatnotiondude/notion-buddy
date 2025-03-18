@@ -10,7 +10,7 @@ if (!apiKey) {
 // Initialize the AI only if we have an API key
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null
 const model = genAI?.getGenerativeModel({ 
-  model: 'gemini-pro',
+  model: 'gemini-1.5-pro-001',
   generationConfig: {
     maxOutputTokens: 2048,
     temperature: 0.7,
