@@ -134,9 +134,9 @@ export const useStore = create<ChatState>()((set, get) => {
           
           return {
             chats: state.chats.map(chat => {
-              if (chat.id === chatId) {
-                return {
-                  ...chat,
+            if (chat.id === chatId) {
+              return {
+                ...chat,
                   messages: [...(chat.messages || []), message]
                 }
               }

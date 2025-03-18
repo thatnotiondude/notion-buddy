@@ -13,13 +13,28 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { chats, currentChatId, addMessage, updateChatTitle } = useStore()
+  const { chats, currentChatId, addMessage, updateChatTitle, addChat } = useStore()
 
   const currentChat = chats.find((chat) => chat.id === currentChatId)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentChat || !input.trim() || isLoading || disabled) return
+    if (!input.trim() || isLoading || disabled) return
+
+    // Create a new chat if none exists
+    let chatToUse = currentChat
+    if (!chatToUse) {
+      try {
+        chatToUse = await addChat()
+        if (!chatToUse) {
+          throw new Error('Failed to create new chat')
+        }
+      } catch (error) {
+        setError('Failed to create new chat')
+        setIsLoading(false)
+        return
+      }
+    }
 
     const userMessage = input.trim()
     setInput('')
@@ -28,10 +43,10 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
 
     try {
       // Add user message
-      await addMessage(currentChat.id, userMessage, 'user')
+      await addMessage(chatToUse.id, userMessage, 'user')
 
       // If this is the first message, generate a title
-      if (currentChat.messages.length === 0) {
+      if (!chatToUse.messages || chatToUse.messages.length === 0) {
         const titleResponse = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -60,7 +75,7 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
             .replace(/\s*\(.*?\)/g, '') // Remove parentheticals
             .split(/[.:\n]/)[0] // Take only the first line/segment
             .trim()
-          await updateChatTitle(currentChat.id, cleanTitle)
+          await updateChatTitle(chatToUse.id, cleanTitle)
         }
       }
 
@@ -70,7 +85,7 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [
-            ...currentChat.messages,
+            ...chatToUse.messages,
             {
               role: 'user',
               content: `As a Notion expert, provide a clear and concise response to this query. Focus on practical advice and avoid using emojis or casual language. Maintain a professional yet approachable tone. The query is: "${userMessage}"`,
@@ -84,12 +99,12 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
       }
 
       // Add AI response
-      await addMessage(currentChat.id, response.response, 'assistant')
+      await addMessage(chatToUse.id, response.response, 'assistant')
     } catch (error) {
       console.error('Error:', error)
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
       setError(errorMessage)
-      await addMessage(currentChat.id, 'I encountered an error processing your request. Please try again.', 'assistant')
+      await addMessage(chatToUse.id, 'I encountered an error processing your request. Please try again.', 'assistant')
     } finally {
       setIsLoading(false)
     }
