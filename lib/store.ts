@@ -184,7 +184,7 @@ export const useStore = create<ChatState>()((set, get) => {
             }),
             messages: {
               ...state.messages,
-              [chatId]: [...(state.messages[chatId] || []), message]
+              [chatId]: [...state.messages[chatId] || [], message]
             }
           }))
         }
