@@ -5,11 +5,11 @@ import { Share2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface ShareButtonProps {
-  shareUrl: string
+  shareUrl?: string
   onShare: () => Promise<string>
 }
 
-export function ShareButton({ shareUrl, onShare }: ShareButtonProps) {
+export function ShareButton({ shareUrl = '', onShare }: ShareButtonProps) {
   const [copied, setCopied] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 

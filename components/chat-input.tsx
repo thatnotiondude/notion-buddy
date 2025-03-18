@@ -85,7 +85,7 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [
-            ...chatToUse.messages,
+            ...(chatToUse.messages || []),
             {
               role: 'user',
               content: `As a Notion expert, provide a clear and concise response to this query. Focus on practical advice and avoid using emojis or casual language. Maintain a professional yet approachable tone. The query is: "${userMessage}"`,
