@@ -139,7 +139,7 @@ export const useStore = create<ChatState>()((set, get) => {
 
           if (updateError) throw updateError
 
-          // Update local state
+          // Update both chats and messages state
           set(state => ({
             chats: state.chats.map(chat => {
               if (chat.id === chatId) {
@@ -148,7 +148,13 @@ export const useStore = create<ChatState>()((set, get) => {
                 return { ...chat, messages: newMessages }
               }
               return chat
-            })
+            }),
+            messages: {
+              ...state.messages,
+              [chatId]: state.messages[chatId]?.map((msg, i) => 
+                i === index ? { ...msg, content } : msg
+              ) || []
+            }
           }))
         } else {
           // Add new message
@@ -168,14 +174,18 @@ export const useStore = create<ChatState>()((set, get) => {
           if (messageError) throw messageError
           if (!message) throw new Error('No message returned')
 
-          // Update local state
+          // Update both chats and messages state
           set(state => ({
             chats: state.chats.map(chat => {
               if (chat.id === chatId) {
                 return { ...chat, messages: [...chat.messages, message] }
               }
               return chat
-            })
+            }),
+            messages: {
+              ...state.messages,
+              [chatId]: [...(state.messages[chatId] || []), message]
+            }
           }))
         }
 
