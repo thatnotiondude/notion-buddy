@@ -54,7 +54,7 @@ export function ChatMessages({ messages, isSharedView = false }: ChatMessagesPro
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-50 px-4 py-6 dark:bg-slate-950">
+    <div className="flex-1 overflow-y-auto bg-white px-4 py-6 dark:bg-slate-950">
       <div className="mx-auto max-w-3xl space-y-6">
         {displayMessages.map((message, index) => (
           <div
@@ -63,7 +63,7 @@ export function ChatMessages({ messages, isSharedView = false }: ChatMessagesPro
               'group relative rounded-lg px-4 py-3',
               message.role === 'user'
                 ? 'ml-auto max-w-[85%] bg-blue-50 text-blue-900 dark:bg-blue-950 dark:text-blue-100'
-                : 'mr-auto max-w-[85%] bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100'
+                : 'mr-auto max-w-[85%] bg-slate-50 text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100'
             )}
           >
             <div className="prose prose-sm max-w-none dark:prose-invert">
