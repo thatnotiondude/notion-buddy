@@ -101,10 +101,21 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
       // Add AI response
       await addMessage(chatToUse.id, response.response, 'assistant')
     } catch (error) {
-      console.error('Error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
-      setError(errorMessage)
-      await addMessage(chatToUse.id, 'I encountered an error processing your request. Please try again.', 'assistant')
+      console.error('Error in chat:', error)
+      setError(error instanceof Error ? error.message : 'Failed to send message. Please try again.')
+      
+      // If we failed after sending the user message, add an error message to the chat
+      if (chatToUse) {
+        try {
+          await addMessage(
+            chatToUse.id,
+            'I encountered an error processing your request. Please try again.',
+            'assistant'
+          )
+        } catch (e) {
+          console.error('Error adding error message:', e)
+        }
+      }
     } finally {
       setIsLoading(false)
     }
