@@ -43,7 +43,7 @@ export function ChatMessages({ messages, isSharedView = false }: ChatMessagesPro
     )
   }
 
-  if (displayMessages.length === 0) {
+  if (!displayMessages || displayMessages.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-slate-500 dark:text-slate-400">
