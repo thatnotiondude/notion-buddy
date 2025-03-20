@@ -11,9 +11,10 @@ import type { Message } from '@/lib/types'
 
 interface ChatInputProps {
   disabled?: boolean
+  isSidebarOpen?: boolean
 }
 
-export function ChatInput({ disabled = false }: ChatInputProps) {
+export function ChatInput({ disabled = false, isSidebarOpen = true }: ChatInputProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -113,7 +114,11 @@ export function ChatInput({ disabled = false }: ChatInputProps) {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-white from-50% to-white/0 dark:from-gray-900 dark:to-gray-900/0 pb-4 pl-72">
+    <div className={cn(
+      "fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-white from-50% to-white/0 dark:from-gray-900 dark:to-gray-900/0 pb-4",
+      "transition-[padding-left] duration-300 ease-in-out",
+      isSidebarOpen ? "pl-72 md:pl-72" : "pl-0"
+    )}>
       <div className="mx-auto w-full max-w-[calc(100%-2rem)] px-4">
         <div className="relative rounded-lg border bg-white shadow-lg dark:bg-gray-900 dark:border-gray-800">
           <form onSubmit={handleSubmit} className="relative flex items-center p-2">

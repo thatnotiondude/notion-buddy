@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -8,7 +7,7 @@ import { useTheme } from 'next-themes'
 import { ChatMessages } from './chat-messages'
 import { ChatInput } from './chat-input'
 import { Button } from './ui/button'
-import { Plus, Sun, Moon, Share, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Sun, Moon, Menu, X, Pencil, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -19,6 +18,22 @@ export function ChatComponent() {
   const [editingChatId, setEditingChatId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [isCreatingChat, setIsCreatingChat] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+
+  // Close sidebar by default on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false)
+      } else {
+        setIsSidebarOpen(true)
+      }
+    }
+    
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     console.log('ChatComponent mounted')
@@ -115,24 +130,48 @@ export function ChatComponent() {
 
   return (
     <div className="w-full h-[100dvh] overflow-hidden">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-20 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="fixed top-0 left-0 w-72 h-[100dvh] flex flex-col bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-10">
+      <div className={cn(
+        "fixed top-0 left-0 w-72 h-[100dvh] flex flex-col bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700",
+        "transform transition-transform duration-300 ease-in-out z-30",
+        "md:transform-none",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
         {/* App Title and Theme Toggle */}
         <div className="flex-none p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Notion Buddy</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSidebarOpen(false)}
+              className="md:hidden text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+              aria-label="Close sidebar"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* New Chat Button */}
@@ -243,74 +282,42 @@ export function ChatComponent() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="fixed top-0 left-72 right-0 bottom-0 flex flex-col h-[100dvh] bg-white dark:bg-gray-900 z-0">
+      <div className={cn(
+        "fixed top-0 right-0 bottom-0 flex flex-col h-[100dvh] bg-white dark:bg-gray-900 transition-[left] duration-300 ease-in-out",
+        isSidebarOpen ? "left-72 md:left-72" : "left-0"
+      )}>
         {/* Chat Header */}
         <div className="flex-none h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800">
-          <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">
-            {currentChatId ? (
-              chats.find(chat => chat.id === currentChatId)?.title || 'New Chat'
-            ) : (
-              'Select or start a new chat'
-            )}
-          </h2>
-          {currentChatId && (
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
-              size="sm"
-              onClick={async () => {
-                try {
-                  const response = await fetch('/api/share', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ chatId: currentChatId }),
-                  });
-                  
-                  if (!response.ok) throw new Error('Failed to create share link');
-                  
-                  const { shareId } = await response.json();
-                  const shareUrl = `${window.location.origin}/shared/${shareId}`;
-                  
-                  try {
-                    await navigator.clipboard.writeText(shareUrl);
-                    toast.success('Share link copied to clipboard!');
-                  } catch (clipboardError) {
-                    // Fallback: Create a temporary input element
-                    const tempInput = document.createElement('input');
-                    tempInput.value = shareUrl;
-                    document.body.appendChild(tempInput);
-                    tempInput.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(tempInput);
-                    toast.success('Share link copied to clipboard!');
-                  }
-                } catch (error) {
-                  console.error('Error sharing chat:', error);
-                  toast.error('Failed to create share link. Please try again.');
-                }
-              }}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              size="icon"
+              onClick={() => setIsSidebarOpen(true)}
+              className={cn(
+                "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100",
+                isSidebarOpen && "hidden md:hidden"
+              )}
+              aria-label="Open sidebar"
             >
-              <Share className="h-4 w-4 mr-2" />
-              Share
+              <Menu className="h-5 w-5" />
             </Button>
-          )}
+            <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              {currentChatId ? (
+                chats.find(chat => chat.id === currentChatId)?.title || 'New Chat'
+              ) : (
+                'Select or start a new chat'
+              )}
+            </h2>
+          </div>
         </div>
 
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto px-4 py-4 md:px-8">
-            <ChatMessages />
-          </div>
+        {/* Messages Area */}
+        <div className="flex-1 overflow-hidden relative">
+          <ChatMessages />
         </div>
 
         {/* Chat Input */}
-        <div className="flex-none border-t border-gray-200 dark:border-gray-800">
-          <div className="max-w-3xl mx-auto px-4 py-4 md:px-8">
-            <ChatInput />
-          </div>
-        </div>
+        <ChatInput isSidebarOpen={isSidebarOpen} />
       </div>
     </div>
   )
