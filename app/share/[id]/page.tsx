@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
-import { db } from '@/lib/db'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 import { ChatMessages } from '@/components/chat-messages'
+import { Database } from '@/lib/database.types'
 
 interface SharedChatPageProps {
   params: {
@@ -9,18 +11,24 @@ interface SharedChatPageProps {
 }
 
 export default async function SharedChatPage({ params }: SharedChatPageProps) {
-  const share = await db.share.findUnique({
-    where: {
-      id: params.id,
-    },
-    include: {
-      chat: {
-        include: {
-          messages: true,
-        },
-      },
-    },
-  })
+  const supabase = createServerComponentClient<Database>({ cookies })
+
+  const { data: share } = await supabase
+    .from('shares')
+    .select(`
+      id,
+      chat_id,
+      chat:chats!inner(id),
+      messages:messages!inner(
+        id,
+        chat_id,
+        role,
+        content,
+        created_at
+      )
+    `)
+    .eq('id', params.id)
+    .single()
 
   if (!share) {
     notFound()
@@ -40,13 +48,7 @@ export default async function SharedChatPage({ params }: SharedChatPageProps) {
           {/* Messages */}
           <div className="flex-1 overflow-hidden">
             <ChatMessages 
-              messages={share.chat.messages.map(msg => ({
-                id: msg.id,
-                chat_id: msg.chatId,
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content,
-                created_at: msg.createdAt.toISOString()
-              }))} 
+              messages={share.messages} 
               isSharedView 
             />
           </div>
