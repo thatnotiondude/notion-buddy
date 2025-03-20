@@ -2,6 +2,7 @@ import '@/styles/globals.css'
 import { Inter } from 'next/font/google'
 import { Metadata, Viewport } from 'next'
 import { Providers } from './providers'
+import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -60,6 +61,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script
+          src="https://cdn.amplitude.com/script/913cfb940b317e485ef775afff54e9d5.js"
+          strategy="beforeInteractive"
+        />
+        <Script
+          id="amplitude-init"
+          strategy="afterInteractive"
+        >
+          {`
+            window.amplitude.add(window.sessionReplay.plugin({sampleRate: 1}));
+            window.amplitude.init('913cfb940b317e485ef775afff54e9d5', {
+              "fetchRemoteConfig": true,
+              "autocapture": true
+            });
+          `}
+        </Script>
+      </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>
       </body>
