@@ -1,15 +1,13 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { Providers } from "./providers";
-import { Toaster } from 'sonner'
+import '@/styles/globals.css'
+import { Inter } from 'next/font/google'
+import { Providers } from './providers'
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
-  title: "Notion Buddy - Your AI Assistant",
-  description: "Get instant answers and expert guidance for all your Notion questions.",
-};
+export const metadata = {
+  title: 'Notion Buddy',
+  description: 'Your AI-powered Notion assistant',
+}
 
 export default function RootLayout({
   children,
@@ -19,11 +17,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <Providers>
-          {children}
-          <Toaster richColors closeButton position="top-right" />
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
-  );
+  )
 }

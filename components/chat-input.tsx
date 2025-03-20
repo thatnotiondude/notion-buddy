@@ -1,9 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useStore } from '@/lib/store'
 import { Button } from './ui/button'
-import { Send } from 'lucide-react'
+import { Textarea } from './ui/textarea'
+import { Send, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
+import type { Message } from '@/lib/types'
 
 interface ChatInputProps {
   disabled?: boolean
@@ -12,180 +16,149 @@ interface ChatInputProps {
 export function ChatInput({ disabled = false }: ChatInputProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const { chats, currentChatId, addMessage, updateChatTitle, addChat } = useStore()
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const { currentChatId, addMessage, addChat, setCurrentChat, messages } = useStore()
 
-  const currentChat = chats.find((chat) => chat.id === currentChatId)
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`
+    }
+  }, [input])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || isLoading || disabled) return
 
-    // Create a new chat if none exists
-    let chatToUse = currentChat
-    if (!chatToUse) {
-      try {
-        console.log('Creating new chat...')
-        chatToUse = await addChat()
-        if (!chatToUse) {
-          throw new Error('Failed to create new chat')
-        }
-        console.log('New chat created:', chatToUse.id)
-      } catch (error) {
-        console.error('Error creating chat:', error)
-        setError('Failed to create new chat')
-        setIsLoading(false)
-        return
-      }
-    }
-
-    const userMessage = input.trim()
-    setInput('')
-    setError(null)
     setIsLoading(true)
+    const messageToSend = input.trim()
+    setInput('') // Clear input immediately after sending
 
     try {
-      console.log('Adding user message...')
-      // Add user message
-      await addMessage(chatToUse.id, userMessage, 'user')
-      console.log('User message added successfully')
-
-      // If this is the first message, generate a title
-      if (!chatToUse.messages || chatToUse.messages.length === 0) {
-        console.log('Generating title...')
-        const titleResponse = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [
-              {
-                role: 'user',
-                content: `Create a single, specific title (2-4 words) for this Notion-related query. Do not provide options or explanations - respond only with the title itself. The title should be professional and descriptive, focusing on the main topic. Query: "${userMessage}"`,
-              },
-            ],
-          }),
-        }).then((res) => res.json())
-
-        if (titleResponse.error) {
-          console.error('Error generating title:', titleResponse.error)
-          throw new Error(titleResponse.error)
+      let chatId = currentChatId
+      if (!chatId) {
+        const newChat = await addChat()
+        if (!newChat) {
+          throw new Error('Failed to create new chat')
         }
-
-        if (titleResponse.response) {
-          console.log('Title generated:', titleResponse.response)
-          // Clean up the title by removing any explanatory text and formatting
-          const cleanTitle = titleResponse.response
-            .replace(/^["']|["']$/g, '') // Remove quotes
-            .replace(/^(a |an |the )/i, '') // Remove articles
-            .replace(/^here are.*?:/i, '') // Remove "here are" phrases
-            .replace(/^title:?\s*/i, '') // Remove "title:" prefix
-            .replace(/^\*|\*$/g, '') // Remove asterisks
-            .replace(/\s*\(.*?\)/g, '') // Remove parentheticals
-            .split(/[.:\n]/)[0] // Take only the first line/segment
-            .trim()
-          await updateChatTitle(chatToUse.id, cleanTitle)
-          console.log('Title updated:', cleanTitle)
-        }
+        chatId = newChat.id
+        await setCurrentChat(chatId)
       }
+
+      // Add user message first
+      const userMessage: Pick<Message, 'role' | 'content'> = {
+        role: 'user' as const,
+        content: messageToSend
+      }
+      
+      const userMessageResult = await addMessage(chatId, userMessage.content, userMessage.role)
+      if (userMessageResult.error) {
+        throw new Error(userMessageResult.error)
+      }
+
+      // Get chat history
+      const chatHistory = messages[chatId] || []
+      
+      // Format messages for the API - only include non-empty messages
+      const messageHistory = chatHistory
+        .filter(msg => msg && msg.content && msg.content.trim() !== '')
+        .map(msg => ({
+          role: msg.role === 'user' ? ('user' as const) : ('assistant' as const),
+          content: msg.content.trim()
+        }))
+
+      // Add the current message to the history
+      messageHistory.push(userMessage)
+
+      console.log('Sending messages to API:', messageHistory)
 
       // Get AI response
-      console.log('Getting AI response...')
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          messages: [
-            ...(chatToUse.messages || []),
-            {
-              role: 'user',
-              content: `As a Notion expert, provide a clear and concise response to this query. Focus on practical advice and avoid using emojis or casual language. Maintain a professional yet approachable tone. The query is: "${userMessage}"`,
-            },
-          ],
+          messages: messageHistory
         }),
-      }).then((res) => res.json())
+      })
 
-      if (response.error) {
-        console.error('Error getting AI response:', response.error)
-        throw new Error(response.error)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }))
+        throw new Error(errorData.error || `Failed to get AI response: ${response.status}`)
       }
 
-      console.log('AI response received, adding to chat...')
-      // Add AI response
-      await addMessage(chatToUse.id, response.response, 'assistant')
-      console.log('AI response added successfully')
+      const data = await response.json()
+      if (!data.response) {
+        throw new Error('Invalid response from AI')
+      }
+
+      // Add AI response to chat
+      await addMessage(chatId, data.response, 'assistant')
     } catch (error) {
-      console.error('Error in chat:', error)
-      setError(error instanceof Error ? error.message : 'Failed to send message. Please try again.')
-      
-      // If we failed after sending the user message, add an error message to the chat
-      if (chatToUse) {
-        try {
-          console.log('Adding error message to chat...')
-          await addMessage(
-            chatToUse.id,
-            'I encountered an error processing your request. Please try again.',
-            'assistant'
-          )
-          console.log('Error message added successfully')
-        } catch (e) {
-          console.error('Error adding error message:', e)
-        }
-      }
+      console.error('Error sending message:', error)
+      console.error('Detailed error:', error)
+      toast.error('Failed to send message. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit(e)
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="border-t border-slate-200 bg-white/80 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80">
-      <div className="mx-auto max-w-3xl p-4">
-        <div className="relative flex items-end gap-2">
-          <div className="relative flex-1 overflow-hidden rounded-lg border border-slate-200 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-slate-700 dark:bg-slate-800">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  if (!isLoading && !disabled && input.trim()) {
-                    handleSubmit(e)
-                  }
-                }
-              }}
-              placeholder="Ask about Notion... (Press Enter to send, Shift+Enter for new line)"
-              rows={1}
-              className="max-h-48 min-h-[44px] w-full resize-none bg-transparent px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-500"
-              style={{
-                overflow: 'hidden',
-                height: 'auto'
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement
-                target.style.height = 'auto'
-                target.style.height = `${Math.min(target.scrollHeight, 192)}px`
-              }}
-              disabled={isLoading || disabled}
-            />
-          </div>
-          <Button
-            type="submit"
-            size="icon"
-            disabled={isLoading || disabled || !input.trim()}
-            className="h-11 w-11 shrink-0 rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:bg-slate-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-slate-700"
-          >
-            {isLoading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70" />
-            ) : (
-              <Send className="h-4 w-4" />
+    <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+      <div className="mx-auto max-w-3xl px-4 py-4">
+        <form onSubmit={handleSubmit} className="relative">
+          <Textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask me about Notion templates, workspace design, or any Notion-related questions... (Press Enter to send, Shift+Enter for new line)"
+            className={cn(
+              "w-full resize-none rounded-lg",
+              "bg-gray-50 dark:bg-gray-800",
+              "border-gray-200 dark:border-gray-700",
+              "text-gray-900 dark:text-gray-200",
+              "placeholder-gray-500 dark:placeholder-gray-400",
+              "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+              "pr-24 py-3 min-h-[56px] text-sm leading-relaxed",
+              "shadow-sm dark:shadow-lg"
             )}
-          </Button>
-        </div>
-        {error && (
-          <p className="mt-2 text-sm text-red-500 dark:text-red-400">
-            {error}
-          </p>
-        )}
+            rows={1}
+            disabled={disabled}
+          />
+          <div className="absolute right-2 bottom-2 flex items-center gap-2">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {isLoading ? 'Sending...' : 'Enter ↵'}
+            </span>
+            <Button
+              type="submit"
+              disabled={isLoading || !input.trim() || disabled}
+              className={cn(
+                "h-8 px-4",
+                "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600",
+                "text-white",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                "text-sm font-medium"
+              )}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                'Send'
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   )
 } 

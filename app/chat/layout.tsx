@@ -18,17 +18,13 @@ export default function ChatLayout({
     }
   }, [user, loading, router])
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-white dark:bg-slate-950">
-        <div className="text-lg text-slate-600 dark:text-slate-400">Loading...</div>
-      </div>
-    )
-  }
-
   if (!user) {
     return null
   }
 
-  return children
+  return (
+    <div className="min-h-screen bg-gray-900">
+      {children}
+    </div>
+  )
 } 

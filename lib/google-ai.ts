@@ -10,7 +10,7 @@ if (!apiKey) {
 // Initialize the AI only if we have an API key
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null
 const model = genAI?.getGenerativeModel({ 
-  model: 'gemini-1.5-pro-001',
+  model: 'gemini-1.5-flash',
   generationConfig: {
     maxOutputTokens: 2048,
     temperature: 0.7,
@@ -35,6 +35,10 @@ const isRetryableError = (error: Error): boolean => {
 export async function generateResponse(messages: Message[], retries = 3): Promise<string> {
   if (!genAI || !model) {
     throw new Error('Google AI is not properly configured. Please check your environment variables.')
+  }
+
+  if (!messages || messages.length === 0) {
+    throw new Error('No messages provided')
   }
 
   try {
