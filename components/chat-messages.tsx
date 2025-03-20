@@ -230,8 +230,8 @@ export function ChatMessages({ messages: propMessages, isSharedView = false }: C
 
   if (!displayMessages || displayMessages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center p-4">
-        <p className="text-gray-400 dark:text-gray-400 text-sm">
+      <div className="flex items-center justify-center p-4 text-center">
+        <p className="text-gray-400 dark:text-gray-400 text-sm max-w-sm">
           Hi! I'm your Notion Expert. Ask me anything about creating Notion templates, workspace design, database structures, or optimizing your Notion setup...
         </p>
       </div>
@@ -239,197 +239,144 @@ export function ChatMessages({ messages: propMessages, isSharedView = false }: C
   }
 
   return (
-    <div className="flex-1 w-full h-full overflow-y-auto bg-white dark:bg-gray-900">
-      <div className="mx-auto max-w-3xl h-full">
-        {displayMessages.map((message, index) => (
-          <div
-            key={message.id || index}
-            className={cn(
-              'group relative px-4 py-6',
-              message.role === 'user' ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'
-            )}
-          >
-            {/* Message Role Label */}
-            <div className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
-              {message.role === 'user' ? 'You' : 'Notion Expert'}
-            </div>
-
-            {/* Message Content */}
-            {editingMessageIndex === index ? (
-              <div className="space-y-2">
-                <Textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full min-h-[100px] bg-white dark:bg-gray-800"
-                  placeholder="Edit your message..."
-                />
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCancelEdit}
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  >
-                    <X className="h-4 w-4 mr-1" />
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleSaveEdit(index)}
-                    className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200"
-                  >
-                    <Check className="h-4 w-4 mr-1" />
-                    Save & Regenerate
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="prose dark:prose-invert max-w-none prose-pre:my-0">
-                <ReactMarkdown
-                  components={{
-                    code: ({ node, inline, className, children, ...props }: CodeProps) => {
-                      const match = /language-(\w+)/.exec(className || '')
-                      return !inline && match ? (
-                        <div className="relative group my-4">
-                          <SyntaxHighlighter
-                            style={vscDarkPlus}
-                            language={match[1]}
-                            PreTag="div"
-                            className="!bg-gray-100 dark:!bg-gray-800 !rounded-lg !p-4"
-                            {...props}
-                          >
-                            {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
-                        </div>
-                      ) : (
-                        <code className="rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-sm font-mono" {...props}>
-                          {children}
-                        </code>
-                      )
-                    },
-                    p: ({ children }) => (
-                      <p className="mb-4 last:mb-0 text-gray-700 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
-                        {children}
-                      </p>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="mb-4 list-disc pl-6 last:mb-0 text-gray-700 dark:text-gray-200 space-y-2">
-                        {children}
-                      </ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="mb-4 list-decimal pl-6 last:mb-0 text-gray-700 dark:text-gray-200 space-y-2">
-                        {children}
-                      </ol>
-                    ),
-                    li: ({ children }) => (
-                      <li className="text-gray-700 dark:text-gray-200">
-                        {children}
-                      </li>
-                    ),
-                    h1: ({ children }) => (
-                      <h1 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-gray-100 border-b pb-2 border-gray-200 dark:border-gray-700">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100 border-b pb-2 border-gray-200 dark:border-gray-700">
-                        {children}
-                      </h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {children}
-                      </h3>
-                    ),
-                    blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20 pl-4 py-2 my-4 italic text-gray-700 dark:text-gray-300">
-                        {children}
-                      </blockquote>
-                    ),
-                    a: ({ children, href }) => (
-                      <a 
-                        href={href} 
-                        className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 underline decoration-2 underline-offset-2" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                      >
-                        {children}
-                      </a>
-                    ),
-                    pre: ({ children }) => (
-                      <pre className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 overflow-x-auto my-4">
-                        {children}
-                      </pre>
-                    ),
-                    table: ({ children }) => (
-                      <div className="overflow-x-auto my-4">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                          {children}
-                        </table>
-                      </div>
-                    ),
-                    th: ({ children }) => (
-                      <th className="px-4 py-2 bg-gray-50 dark:bg-gray-800 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
-                        {children}
-                      </th>
-                    ),
-                    td: ({ children }) => (
-                      <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-t border-gray-200 dark:border-gray-700">
-                        {children}
-                      </td>
-                    ),
-                    hr: () => (
-                      <hr className="my-6 border-t border-gray-200 dark:border-gray-700" />
-                    ),
-                    img: ({ src, alt }) => (
-                      <img 
-                        src={src} 
-                        alt={alt} 
-                        className="rounded-lg max-w-full h-auto my-4 border border-gray-200 dark:border-gray-700" 
-                      />
-                    )
-                  }}
-                >
-                  {message.content}
-                </ReactMarkdown>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            {!isSharedView && (
-              <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
-                {message.role === 'user' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 text-xs"
-                    onClick={() => handleStartEdit(index, message.content)}
-                    disabled={editingMessageIndex !== null}
-                  >
-                    <Pencil className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                )}
-                {message.role === 'assistant' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 text-xs"
-                    onClick={() => handleRetry(index)}
-                    disabled={retrying === index}
-                  >
-                    <RotateCw className={cn("h-3 w-3 mr-1", retrying === index && "animate-spin")} />
-                    Regenerate
-                  </Button>
-                )}
-              </div>
-            )}
+    <div className="space-y-4 w-full">
+      {displayMessages.map((message, index) => (
+        <div
+          key={message.id || index}
+          className={cn(
+            'group relative p-4 sm:p-6',
+            message.role === 'user' ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'
+          )}
+        >
+          {/* Message Role Label */}
+          <div className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+            {message.role === 'user' ? 'You' : 'Notion Expert'}
           </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+
+          {/* Message Content */}
+          {editingMessageIndex === index ? (
+            <div className="space-y-2">
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full min-h-[100px] bg-white dark:bg-gray-800 text-sm"
+                placeholder="Edit your message..."
+              />
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCancelEdit}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSaveEdit(index)}
+                  className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200"
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  Save & Regenerate
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+              <ReactMarkdown
+                components={{
+                  code: ({ node, inline, className, children, ...props }: CodeProps) => {
+                    const match = /language-(\w+)/.exec(className || '')
+                    return !inline && match ? (
+                      <div className="relative group">
+                        <SyntaxHighlighter
+                          {...props}
+                          style={vscDarkPlus}
+                          language={match[1]}
+                          PreTag="div"
+                          className="rounded-md text-sm leading-6 !my-4 !bg-gray-800"
+                        >
+                          {String(children).replace(/\n$/, '')}
+                        </SyntaxHighlighter>
+                      </div>
+                    ) : (
+                      <code {...props} className={cn('bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5', className)}>
+                        {children}
+                      </code>
+                    )
+                  },
+                  pre: ({ children }) => (
+                    <pre className="overflow-x-auto rounded-lg p-4 my-4 bg-gray-800 text-sm">
+                      {children}
+                    </pre>
+                  ),
+                  p: ({ children }) => (
+                    <p className="text-gray-700 dark:text-gray-300 leading-7">{children}</p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="text-gray-700 dark:text-gray-300">{children}</li>
+                  ),
+                  a: ({ href, children }) => (
+                    <a 
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                      {children}
+                    </a>
+                  )
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          {!isSharedView && (
+            <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+              {message.role === 'user' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 text-xs h-7 px-2"
+                  onClick={() => handleStartEdit(index, message.content)}
+                  disabled={editingMessageIndex !== null}
+                >
+                  <Pencil className="h-3 w-3 mr-1" />
+                  Edit
+                </Button>
+              )}
+              {message.role === 'assistant' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 text-xs h-7 px-2"
+                  onClick={() => handleRetry(index)}
+                  disabled={retrying === index}
+                >
+                  <RotateCw className={cn("h-3 w-3 mr-1", retrying === index && "animate-spin")} />
+                  Regenerate
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+      <div ref={messagesEndRef} />
     </div>
   )
 } 
