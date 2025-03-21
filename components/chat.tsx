@@ -287,7 +287,7 @@ export function ChatComponent() {
         isSidebarOpen ? "left-72 md:left-72" : "left-0"
       )}>
         {/* Chat Header */}
-        <div className="flex-none h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800">
+        <header className="flex-none h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -309,12 +309,16 @@ export function ChatComponent() {
               )}
             </h2>
           </div>
-        </div>
+        </header>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-hidden relative">
-          <ChatMessages />
-        </div>
+        <main className="flex-1 overflow-y-auto relative">
+          <div className="absolute inset-0 overflow-y-auto">
+            <div className="mx-auto max-w-3xl px-4 py-6">
+              <ChatMessages />
+            </div>
+          </div>
+        </main>
 
         {/* Chat Input */}
         <ChatInput isSidebarOpen={isSidebarOpen} />

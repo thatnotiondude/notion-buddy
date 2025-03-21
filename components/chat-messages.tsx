@@ -230,7 +230,7 @@ export function ChatMessages({ messages: propMessages, isSharedView = false }: C
 
   if (!displayMessages || displayMessages.length === 0) {
     return (
-      <div className="flex items-center justify-center p-4 text-center">
+      <div className="flex items-center justify-center p-4 text-center min-h-[50vh]">
         <p className="text-gray-400 dark:text-gray-400 text-sm max-w-sm">
           Hi! I'm your Notion Expert. Ask me anything about creating Notion templates, workspace design, database structures, or optimizing your Notion setup...
         </p>
@@ -239,12 +239,12 @@ export function ChatMessages({ messages: propMessages, isSharedView = false }: C
   }
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-4 w-full pb-4">
       {displayMessages.map((message, index) => (
         <div
           key={message.id || index}
           className={cn(
-            'group relative p-4 sm:p-6',
+            'group relative p-4 sm:p-6 rounded-lg',
             message.role === 'user' ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'
           )}
         >
@@ -296,7 +296,7 @@ export function ChatMessages({ messages: propMessages, isSharedView = false }: C
                           style={vscDarkPlus}
                           language={match[1]}
                           PreTag="div"
-                          className="rounded-md text-sm leading-6 !my-4 !bg-gray-800"
+                          className="rounded-md text-sm leading-6 !my-4 !bg-gray-800 overflow-x-auto"
                         >
                           {String(children).replace(/\n$/, '')}
                         </SyntaxHighlighter>
@@ -376,7 +376,7 @@ export function ChatMessages({ messages: propMessages, isSharedView = false }: C
           )}
         </div>
       ))}
-      <div ref={messagesEndRef} />
+      <div ref={messagesEndRef} className="h-px" />
     </div>
   )
 } 
