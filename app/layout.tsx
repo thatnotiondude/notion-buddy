@@ -63,19 +63,16 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <Script
-          src="https://cdn.amplitude.com/script/913cfb940b317e485ef775afff54e9d5.js"
-          strategy="beforeInteractive"
-        />
-        <Script
-          id="amplitude-init"
+          src="https://www.googletagmanager.com/gtag/js?id=G-F55ZF7T4EX"
           strategy="afterInteractive"
-        >
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
           {`
-            window.amplitude.add(window.sessionReplay.plugin({sampleRate: 1}));
-            window.amplitude.init('913cfb940b317e485ef775afff54e9d5', {
-              "fetchRemoteConfig": true,
-              "autocapture": true
-            });
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-F55ZF7T4EX');
           `}
         </Script>
       </head>
